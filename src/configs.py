@@ -26,3 +26,6 @@ class Configs:
 
     def get_cmorph_2deg_file(self) -> str:
         return f"/glade/work/pangulo/cmorph/dyamond_winter/{self.region_name}/2deg/merged.nc"
+
+    def get_gsam_satfrac_sorted_var_dir(self, var, gridsize) -> str:
+        return f"/glade/work/pangulo/gsam_dyamond_winter/{self.region_name}/satfrac_sorted_{var}_{gridsize}pix"
