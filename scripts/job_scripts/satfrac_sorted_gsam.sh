@@ -7,7 +7,7 @@
 #PBS -k eod
 #PBS -m be
 #PBS -M pangulo@uw.edu
-#PBS -l select=1:ncpus=8:mpiprocs=8
+#PBS -l select=1:ncpus=2:mpiprocs=4
 module load conda
 conda activate dyamond
 

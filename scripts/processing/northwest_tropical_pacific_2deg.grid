@@ -1,0 +1,12 @@
+gridtype = lonlat
+gridsize = 200
+xsize = 20
+ysize = 10
+xname = lon
+xunits = "degrees"
+yname = lat
+yunits = "degrees"
+xfirst = 130
+xinc = 2
+yfirst = 0
+yinc = 2

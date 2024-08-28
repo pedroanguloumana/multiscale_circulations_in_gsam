@@ -10,12 +10,20 @@ from src.injestion import AnalysisRegion, gSAMInjestion
 #       - Lat/Lon bounds: S/N: 0.01977827 N to 19.145401 N ;; E/W 130.0E to 169.02344 E
 ########
 
-region = AnalysisRegion('northwest_tropical_pacific')
-region.set_index_box(
-    south_idx = 2304, 
-    north_idx = 2804, 
-    west_idx  = 3327,
-    east_idx  = 4327
-)
+south_idx = 2304
+north_idx = 2804
+west_idx  = 3327
+east_idx  = 4327
+region = AnalysisRegion(
+    region_name='northwest_tropical_pacific',
+    index_box={
+        'lat': slice(south_idx, north_idx),
+         'lon': slice(west_idx, east_idx)
+         }
+    )
 
-gSAMInjestion().subset_gsam_region(region, '2D')
+gSAMInjestion().subset_gsam_region(region, 'TABS')
+gSAMInjestion().subset_gsam_region(region, 'QV')
+gSAMInjestion().subset_gsam_region(region, 'QI')
+gSAMInjestion().subset_gsam_region(region, 'QRAD')
+gSAMInjestion().subset_gsam_region(region, 'VOR')
