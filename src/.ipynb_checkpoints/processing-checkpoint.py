@@ -1,4 +1,5 @@
 # 
+
 from src.configs import ProjectConfigs, gSAMConfigs, ERA5Configs
 from glob import glob
 import numpy as np
@@ -20,12 +21,12 @@ class MoistureSpaceGrids:
         return(variable_files)
 
     def _get_matching_surface_files(self, variable_files):
-        variable_file_times = [f.split('/')[-1].split('_')[6] for f in variable_files] # get the date part of the filename
+        variable_file_times = [f.split('/')[-1].split('_')[4] for f in variable_files]
         surface_files = self._get_variable_files('2D')
-        surface_file_times = [f.split('/')[-1].split('_')[6] for f in surface_files]
+        surface_file_times = [f.split('/')[-1].split('_')[4] for f in surface_files]
         matching_surface_files = []
         for vft in variable_file_times:
-            matching_idx = np.where([vft==_ for _ in surface_file_times])[0]
+            matching_idx = np.where(vft in surface_file_times)[0]
             assert(len(matching_idx==1))
             matching_surface_files.append(surface_files[matching_idx.item()])
         return(matching_surface_files)
@@ -139,7 +140,15 @@ class MoistureSpaceGrids:
             out_fn = self._get_moisturespace_composite_name('circulation', p)
 
             print(f'Saving {out_fn} ...')
-            phase_data.mean('observations').to_netcdf(out_fn)
+            phase_data.to_netcdf(out_fn)
+
+
+
+
+
+
+
+
 
 
 class gSAMCoarsenGrid:
