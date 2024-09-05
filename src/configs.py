@@ -39,3 +39,13 @@ class ERA5Configs:
 
     def cdo_remap_grid_file(self, region, degs):
         return f"{ProjectConfigs().project_root_dir}/scripts/processing/{region}_{degs}deg.grid"
+
+class CMORPHConfigs:
+    @property
+    def hourly_2deg(self):
+        return f"/glade/u/home/pangulo/work/cmorph/dyamond_winter/northwest_tropical_pacific/2deg/merged.nc"
+
+class CERESConfigs:
+    @property
+    def northwest_tropical_pacific_file(self):
+        return "/glade/u/home/pangulo/work/ceres/dyamond_winter/northwest_tropical_pacific.CERES_SYN1deg-1H_Terra-Aqua-MODIS_Ed4.1_Subset_20200201-20200331.nc"
