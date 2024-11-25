@@ -22,6 +22,9 @@ class gSAMConfigs:
 
     def coarse_var_dir(self, region, var, gridsize):
         return f"/glade/work/pangulo/gsam_dyamond_winter/{region}/{var}_{gridsize:.0f}pix"
+
+    def std_var_dir(self, region, var, gridsize):
+        return f"/glade/work/pangulo/gsam_dyamond_winter/{region}/{var}_std_{gridsize:.0f}pix"
         
     @property
     def reference_file(self):
@@ -39,6 +42,10 @@ class ERA5Configs:
 
     def cdo_remap_grid_file(self, region, degs):
         return f"{ProjectConfigs().project_root_dir}/scripts/processing/{region}_{degs}deg.grid"
+
+    def coarse_tcwv(self):
+        path = '/glade/u/home/pangulo/work/era5/dyamond_winter/northwest_tropical_pacific/tcwv'
+        return path + "/coarsened.extracted.northwest_tropical_pacific.e5.oper.an.sfc.128_137_tcwv.ll025sc.2020020100_2020022923.nc"
 
 class CMORPHConfigs:
     @property

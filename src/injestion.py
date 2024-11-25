@@ -88,4 +88,6 @@ class ERA5Injestion:
             output_file = f'{ERA5Configs().hourly_0p25_dir(variable)}/extracted.{region_name}.{os.path.basename(input_file)}'
             cdo.sellonlatbox(wesn[0], wesn[1], wesn[2], wesn[3], input=input_file, output=output_file)
             print(f'Saved at {output_file}')
+
+
     

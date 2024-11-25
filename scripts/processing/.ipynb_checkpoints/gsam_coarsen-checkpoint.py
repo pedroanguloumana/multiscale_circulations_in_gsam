@@ -1,7 +1,6 @@
-from src.processing import gSAMCoarsenGridCoarsenGrid
+from src.processing import gSAMCoarsenGrid
 
 region = 'northwest_tropical_pacific'
-variable = 'W'
 gridsize = 50
 
-gSAMCoarsenGrid().coarsen(region, variable, gridsize)
+gSAMCoarsenGrid().coarsen(region, 'QV', gridsize)

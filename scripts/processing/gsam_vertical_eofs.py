@@ -1,8 +1,8 @@
-from src.processing import VerticalEOFs
+from src.eof_analysis import *
 
 region = 'northwest_tropical_pacific'
-gridsize = 100
+gridsize = 50
 
 # To compare to ERA5, compute EOFs using only ERA5 pressure levels
-VerticalEOFs().gsam_massflux_eofs_era5_levels(region, gridsize)
-
+gsam_massflux_eofs_era5_levels(region, gridsize)
+gsam_massflux_eofs(region, gridsize)

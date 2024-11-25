@@ -11,7 +11,7 @@ import pandas as pd
 region_name = 'northwest_tropical_pacific'
 lat_south, lat_north = 0, 20
 lon_west,  lon_east  = 130, 170
-variable = 'w'
+variable = 't'
 date_range = pd.date_range('2020-02-01', '2020-03-01', freq='1d')
 
 
@@ -21,6 +21,8 @@ ERA5Injestion().subset_era5_pl_region(
     wesn = (lon_west, lon_east, lat_south, lat_north),
     variable = variable,
 )
+
+
 
 
 

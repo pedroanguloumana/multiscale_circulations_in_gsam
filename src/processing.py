@@ -5,7 +5,7 @@ import numpy as np
 from itertools import product
 import os
 import xarray as xr
-import xeofs as xe
+
 from cdo import *
 class MoistureSpaceGrids:
     """
@@ -146,6 +146,7 @@ class gSAMCoarsenGrid:
     def _get_variable_files(self, region, variable):
         variable_files = sorted(glob(f'{gSAMConfigs().native_var_dir(region, variable)}/*.nc'))
         return(variable_files)
+
     def coarsen(self, region, variable, gridsize):
         var_files = self._get_variable_files(region, variable)
         out_dir = gSAMConfigs().coarse_var_dir(region, variable, gridsize)
@@ -155,6 +156,17 @@ class gSAMCoarsenGrid:
             print(f'Coarsening File {i+1} of {len(var_files)} ...')
             out_path = f'{out_dir}/coarsened_{gridsize:.0f}pix.{os.path.basename(vf)}'
             xr.open_dataset(vf).coarsen(coarsen_dict).mean().to_netcdf(out_path)
+            print(f'Saved to {out_path}')
+            
+    def std(self, region, variable, gridsize):
+        var_files = self._get_variable_files(region, variable)
+        out_dir = gSAMConfigs().std_var_dir(region, variable, gridsize)
+        os.makedirs(out_dir, exist_ok=True)
+        coarsen_dict = {'lat': gridsize, 'lon': gridsize}
+        for i, vf in enumerate(var_files):
+            print(f'Coarsening File {i+1} of {len(var_files)} ...')
+            out_path = f'{out_dir}/coarsenedStd_{gridsize:.0f}pix.{os.path.basename(vf)}'
+            xr.open_dataset(vf).coarsen(coarsen_dict).std().to_netcdf(out_path)
             print(f'Saved to {out_path}')
 
 class ERA5CoarsenGrid:
@@ -176,59 +188,3 @@ class ERA5CoarsenGrid:
             output_file = output_dir + f'/coarsened.{os.path.basename(f)}'
             cdo.remapcon(grid_file, input=f, output=output_file)
     
-class VerticalEOFs:
-    def _get_merged_variable_file(self, region, variable, gridsize):
-        variable_files = sorted(glob(f'{gSAMConfigs().coarse_var_dir(region, variable, gridsize)}/merged.nc'))
-        return(variable_files)
-    
-    def gsam_massflux_eofs(self, region, gridsize):
-        input_file = gSAMConfigs().coarse_var_dir(region, 'W', gridsize)+'/merged.nc'
-        ref_data = xr.open_dataset(gSAMConfigs().reference_file)
-        data = xr.open_dataset(input_file)['W']*ref_data.rho
-        print('Computing EOFs and PCs ...')
-        model = xe.models.EOF(n_modes=10, center=True)
-        del model.attrs['solver_kwargs']
-        model.fit(data, ('lat', 'lon', 'time'))
-        print('Saving output ...')
-        out_dir = f'{ProjectConfigs().project_root_dir}/data'
-        breakpoint()
-        assert(os.path.exists(out_dir))
-        model.components().to_netcdf(out_dir + f'/gsam.eofs.{region}.massflux.{gridsize:.0f}pix.nc')
-        model.scores(normalized=False).unstack().to_netcdf(out_dir + f'/gsam.pcs.{region}.massflux.{gridsize:.0f}pix.nc')
-
-    def era5_massflux_eofs(self, region, degs):
-        input_file = f'{ERA5Configs().hourly_coarse_dir(region, "w", degs)}/merged.nc'
-        # mass flux
-        data = xr.open_dataset(input_file)['W'] * (-1/9.81) 
-        # only look at 3 hourly data
-        data = data.isel(time=data.time.dt.hour%3==0)
-        print('Computing EOFs and PCs ...')
-        model = xe.models.EOF(n_modes=10, center=True)
-        del model.attrs['solver_kwargs']
-        model.fit(data, ('lat', 'lon', 'time'))
-        print('Saving output ...')
-        out_dir = f'{ProjectConfigs().project_root_dir}/data'
-        breakpoint()
-        assert(os.path.exists(out_dir))
-        model.components().to_netcdf(out_dir + f'/era5.eofs.{region}.massflux.{degs:.0f}deg.nc')
-        model.scores(normalized=False).unstack().to_netcdf(out_dir + f'/era5.pcs.{region}.massflux.{degs:.0f}deg.nc')
-
-    def gsam_massflux_eofs_era5_levels(self, region, gridsize):
-        input_file = gSAMConfigs().coarse_var_dir(region, 'W', gridsize)+'/merged.nc'
-        ref_data = xr.open_dataset(gSAMConfigs().reference_file)
-        data = xr.open_dataset(input_file)['W']*ref_data.rho
-        # move gsam data to pressure coordinates and interp
-        data = data.assign_coords({'z': ref_data.p}).rename({'z': 'level'})
-        era5_p_levels = xr.open_dataarray(f'{ProjectConfigs().project_root_dir}/data/era5.eofs.northwest_tropical_pacific.massflux.2deg.nc')['level']
-        data = data.interp(level=era5_p_levels)
-
-        print('Computing EOFs and PCs ...')
-        model = xe.models.EOF(n_modes=10, center=True)
-        del model.attrs['solver_kwargs']
-        model.fit(data, ('lat', 'lon', 'time'))
-        print('Saving output ...')
-        out_dir = f'{ProjectConfigs().project_root_dir}/data'
-        breakpoint()
-        assert(os.path.exists(out_dir))
-        model.components().to_netcdf(out_dir + f'/gsam_era5_levels.eofs.{region}.massflux.{gridsize:.0f}pix.nc')
-        model.scores(normalized=False).unstack().to_netcdf(out_dir + f'/gsam_era5_levels.pcs.{region}.massflux.{gridsize:.0f}pix.nc')

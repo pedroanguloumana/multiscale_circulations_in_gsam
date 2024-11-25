@@ -1,7 +1,7 @@
-from src.processing import VerticalEOFs
+from src.eof_analysis import *
 
 region = 'northwest_tropical_pacific'
 degs = 2
 
-VerticalEOFs().era5_massflux_eofs(region, degs)
+era5_massflux_eofs(region, degs)
 

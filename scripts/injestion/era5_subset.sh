@@ -5,8 +5,8 @@ module load cdo
 # Region: Equatorial Indian Ocean (Consult README)
 ## TODO: Add choice of year/month  -PA 8/3/24
 ##################################################
-REGION_NAME="tropical_nw_pac"
-VAR="w"
+REGION_NAME="northwest_tropical_pacific"
+VAR="t"
 LAT_MIN=0
 LAT_MAX=20
 LON_MIN=130

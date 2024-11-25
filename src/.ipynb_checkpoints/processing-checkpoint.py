@@ -1,5 +1,4 @@
 # 
-
 from src.configs import ProjectConfigs, gSAMConfigs, ERA5Configs
 from glob import glob
 import numpy as np
@@ -21,12 +20,12 @@ class MoistureSpaceGrids:
         return(variable_files)
 
     def _get_matching_surface_files(self, variable_files):
-        variable_file_times = [f.split('/')[-1].split('_')[4] for f in variable_files]
+        variable_file_times = [f.split('/')[-1].split('_')[6] for f in variable_files] # get the date part of the filename
         surface_files = self._get_variable_files('2D')
-        surface_file_times = [f.split('/')[-1].split('_')[4] for f in surface_files]
+        surface_file_times = [f.split('/')[-1].split('_')[6] for f in surface_files]
         matching_surface_files = []
         for vft in variable_file_times:
-            matching_idx = np.where(vft in surface_file_times)[0]
+            matching_idx = np.where([vft==_ for _ in surface_file_times])[0]
             assert(len(matching_idx==1))
             matching_surface_files.append(surface_files[matching_idx.item()])
         return(matching_surface_files)
@@ -140,21 +139,14 @@ class MoistureSpaceGrids:
             out_fn = self._get_moisturespace_composite_name('circulation', p)
 
             print(f'Saving {out_fn} ...')
-            phase_data.to_netcdf(out_fn)
-
-
-
-
-
-
-
-
+            phase_data.mean('observations').to_netcdf(out_fn)
 
 
 class gSAMCoarsenGrid:
     def _get_variable_files(self, region, variable):
         variable_files = sorted(glob(f'{gSAMConfigs().native_var_dir(region, variable)}/*.nc'))
         return(variable_files)
+
     def coarsen(self, region, variable, gridsize):
         var_files = self._get_variable_files(region, variable)
         out_dir = gSAMConfigs().coarse_var_dir(region, variable, gridsize)
@@ -164,6 +156,17 @@ class gSAMCoarsenGrid:
             print(f'Coarsening File {i+1} of {len(var_files)} ...')
             out_path = f'{out_dir}/coarsened_{gridsize:.0f}pix.{os.path.basename(vf)}'
             xr.open_dataset(vf).coarsen(coarsen_dict).mean().to_netcdf(out_path)
+            print(f'Saved to {out_path}')
+            
+    def std(self, region, variable, gridsize):
+        var_files = self._get_variable_files(region, variable)
+        out_dir = gSAMConfigs().std_var_dir(region, variable, gridsize)
+        os.makedirs(out_dir, exist_ok=True)
+        coarsen_dict = {'lat': gridsize, 'lon': gridsize}
+        for i, vf in enumerate(var_files):
+            print(f'Coarsening File {i+1} of {len(var_files)} ...')
+            out_path = f'{out_dir}/coarsenedStd_{gridsize:.0f}pix.{os.path.basename(vf)}'
+            xr.open_dataset(vf).coarsen(coarsen_dict).std().to_netcdf(out_path)
             print(f'Saved to {out_path}')
 
 class ERA5CoarsenGrid:
@@ -202,6 +205,7 @@ class VerticalEOFs:
         out_dir = f'{ProjectConfigs().project_root_dir}/data'
         breakpoint()
         assert(os.path.exists(out_dir))
+        model.explained_variance_ratio().to_netcdf(out_dir + f'/gsam.explained_variance_ratio.{region}.massflux.{gridsize:.0f}pix.nc')
         model.components().to_netcdf(out_dir + f'/gsam.eofs.{region}.massflux.{gridsize:.0f}pix.nc')
         model.scores(normalized=False).unstack().to_netcdf(out_dir + f'/gsam.pcs.{region}.massflux.{gridsize:.0f}pix.nc')
 
@@ -219,6 +223,7 @@ class VerticalEOFs:
         out_dir = f'{ProjectConfigs().project_root_dir}/data'
         breakpoint()
         assert(os.path.exists(out_dir))
+        model.explained_variance_ratio().to_netcdf(out_dir + f'/era5.explained_variance_ratio.{region}.massflux.{gridsize:.0f}pix.nc')
         model.components().to_netcdf(out_dir + f'/era5.eofs.{region}.massflux.{degs:.0f}deg.nc')
         model.scores(normalized=False).unstack().to_netcdf(out_dir + f'/era5.pcs.{region}.massflux.{degs:.0f}deg.nc')
 
@@ -239,5 +244,6 @@ class VerticalEOFs:
         out_dir = f'{ProjectConfigs().project_root_dir}/data'
         breakpoint()
         assert(os.path.exists(out_dir))
+        model.explained_variance_ratio().to_netcdf(out_dir + f'/gsam_era5_levels.explained_variance_ratio.{region}.massflux.{gridsize:.0f}pix.nc')
         model.components().to_netcdf(out_dir + f'/gsam_era5_levels.eofs.{region}.massflux.{gridsize:.0f}pix.nc')
         model.scores(normalized=False).unstack().to_netcdf(out_dir + f'/gsam_era5_levels.pcs.{region}.massflux.{gridsize:.0f}pix.nc')

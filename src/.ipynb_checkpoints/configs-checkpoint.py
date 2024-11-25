@@ -22,6 +22,9 @@ class gSAMConfigs:
 
     def coarse_var_dir(self, region, var, gridsize):
         return f"/glade/work/pangulo/gsam_dyamond_winter/{region}/{var}_{gridsize:.0f}pix"
+
+    def std_var_dir(self, region, var, gridsize):
+        return f"/glade/work/pangulo/gsam_dyamond_winter/{region}/{var}_std_{gridsize:.0f}pix"
         
     @property
     def reference_file(self):
