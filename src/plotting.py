@@ -107,6 +107,10 @@ def load_composite_qcpi(n,p):
     file = f"{data_dir()}/phase{p}.{n}.qcpi.nc"
     return xr.open_dataarray(file)
 
+def load_composite_mean_mass_flux(n,p):
+    file = f"{data_dir()}/phase{p}.{n}.mean_mass_flux.nc"
+    return xr.open_dataarray(file)
+    
 def load_composite_prec(n,p):
     file = f"{data_dir()}/phase{p}.{n}.prec.nc"
     return xr.open_dataarray(file)
@@ -118,9 +122,20 @@ def load_composite_prec_se(n,p):
 def load_composite_min_psi(n,p):
     file = f"{data_dir()}/phase{p}.{n}.min_psi.nc"
     return xr.open_dataarray(file)
+
+def load_composite_buoyancy(n,p):
+    file = f"{data_dir()}/phase{p}.{n}.buoyancy.nc"
+    return xr.open_dataarray(file)/1000/1000. # once for g to kg in q, another to kJ/kg
+
 ## 
 def save_figure(fig, filename):
-    path = f'{project_root_dir()}/figures/{filename}'
+    # Get the current timestamp and format it as requested: YYYYMMDD.HHMM
+    timestamp = pd.Timestamp.now().strftime('%Y%m%d.%H%M')
+    
+    # Insert the timestamp at the front of the filename
+    new_filename = f"{timestamp}_{filename}.pdf"
+    
+    path = f"{project_root_dir()}/figures/{new_filename}"
     fig.savefig(path, format='pdf')
 
 def compute_mean_pc_tendency(pcs, method='centered', normed=True):
