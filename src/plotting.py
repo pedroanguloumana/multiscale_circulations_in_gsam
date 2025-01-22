@@ -130,13 +130,12 @@ def load_composite_buoyancy(n,p):
 ## 
 def save_figure(fig, filename):
     # Get the current timestamp and format it as requested: YYYYMMDD.HHMM
-    timestamp = pd.Timestamp.now().strftime('%Y%m%d.%H%M')
-    
+   
     # Insert the timestamp at the front of the filename
-    new_filename = f"{timestamp}_{filename}.pdf"
+    new_filename = f"{filename}"
     
     path = f"{project_root_dir()}/figures/{new_filename}"
-    fig.savefig(path, format='pdf')
+    fig.savefig(path, format='pdf', bbox_inches='tight')
 
 def compute_mean_pc_tendency(pcs, method='centered', normed=True):
     if normed:

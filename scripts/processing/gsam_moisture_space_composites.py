@@ -4,7 +4,7 @@ region = 'northwest_tropical_pacific'
 gridsize = 50
 rmin = 0.5
 grid = MoistureSpaceGrids(region=region, gridsize=gridsize)
-grid.composite_moisture_grids('buoyancy', rmin)
+grid.composite_moisture_grids('virtual_buoyancy', rmin)
 # grid.composite_moisture_grids('QC', rmin)
 # grid.composite_moisture_grids('TABS', rmin)
 # grid.composite_moisture_grids('QI', rmin)
