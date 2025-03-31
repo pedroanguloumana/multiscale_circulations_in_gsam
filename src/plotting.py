@@ -137,33 +137,81 @@ def save_figure(fig, filename):
     path = f"{project_root_dir()}/figures/{new_filename}"
     fig.savefig(path, format='pdf', bbox_inches='tight')
 
-def compute_mean_pc_tendency(pcs, method='centered', normed=True):
-    if normed:
-        pcs /= pcs.std(('lat', 'lon', 'time'))
+def compute_mean_pc_tendency(pcs, n=2, method='centered'):
+    """
+    Compute time tendencies (difference / delta_t) of pcs over 3n hours.
+    Assumes input data are at 3-hour resolution, so skipping n time steps 
+    corresponds to a 3n-hour difference.
+    
+    Parameters
+    ----------
+    pcs : xarray.DataArray
+        Array of principal components or similar time series data with 
+        a 'time' dimension.
+    n : int, optional
+        Number of 3-hour steps to skip for the difference. Default is 2,
+        which corresponds to 6 hours.
+    method : {'centered', 'forward', 'backward'}
+        Method for the finite difference.
+
+    Returns
+    -------
+    xarray.DataArray
+        The time tendency (pcs difference) / (3n).
+    """
+
+    # Each time step is 3 hours, so skipping n steps is 3n hours
+    delta_t = 3 * n
+
     match method:
         case 'centered':
-            # Centered Difference
-            delta_pc = pcs.isel(time=slice(2, None)).data - pcs.isel(time=slice(None, -2)).data   
-            # Align time coordinate with data
-            delta_pc = pcs.isel(time=slice(1, -1)).copy(data=delta_pc)
-            # Hard-coded time step, in hours
-            delta_t = 6
-        case 'forward': 
-            # Forward difference
-            delta_pc = pcs.isel(time=slice(1, None)).data - pcs.isel(time=slice(None, -1)).data
-            # Align time
-            delta_pc = pcs.isel(time=slice(None, -1)).copy(data=delta_pc)
-            # Time step
-            delta_t = 3
+            # -----------------------------------------
+            # "Centered" difference (offset-based):
+            #   delta_pc[t] = pcs[t + n] - pcs[t]
+            # shape of delta_pc => (time - n)
+            # We place the result at times t =  n//2..(end - (n - n//2)) 
+            # so that the .copy(...) has the same shape.
+            # -----------------------------------------
+            delta_pc_values = (
+                pcs.isel(time=slice(2*n, None)).data -
+                pcs.isel(time=slice(None, -2*n)).data
+            )
+            # Align in the middle: slice(n//2, -(n - n//2)) 
+            #   works for both even & odd n
+            delta_pc = pcs.isel(time=slice(n, -(n))).copy(data=delta_pc_values)
+
+        case 'forward':
+            # -----------------------------------------
+            # Forward difference:
+            #   delta_pc[t] = pcs[t] - pcs[t + n]
+            # shape => (time - n)
+            # We place the result at times 0..(end-n)
+            # -----------------------------------------
+            delta_pc_values = (
+                pcs.isel(time=slice(n, None)).data -
+                pcs.isel(time=slice(None, -n)).data
+            )
+            # Align time with the "starting" indices
+            # pcs.isel(time=slice(None, -n)) => shape (time - n)
+            delta_pc = pcs.isel(time=slice(None, -n)).copy(data=delta_pc_values)
+
         case 'backward':
-            # Backward difference
-            delta_pc = pcs.isel(time=slice(1, None)).data - pcs.isel(time=slice(None, -1)).data
-            # Align time
-            delta_pc = pcs.isel(time=slice(1, None)).copy(data=delta_pc)
-            # Time step
-            delta_t = 3
-        
-    return(delta_pc/delta_t)
+            # -----------------------------------------
+            # Backward difference:
+            #   delta_pc[t] = pcs[t + n] - pcs[t]
+            # shape => (time - n)
+            # We place the result at times n..end
+            # -----------------------------------------
+            delta_pc_values = (
+                pcs.isel(time=slice(n, None)).data -
+                pcs.isel(time=slice(None, -n)).data
+            )
+            # Align time with the "ending" indices
+            # pcs.isel(time=slice(n, None)) => shape (time - n)
+            delta_pc = pcs.isel(time=slice(n, None)).copy(data=delta_pc_values)
+
+    return delta_pc / delta_t
+
 
 def bin_stat_by_pcs(pcs, data, pc1_bins, pc2_bins, stat, normed=True):
     if normed:
@@ -234,3 +282,7 @@ def transition_matrix_diff_from_persisting(initial_phase, final_phase, data):
             trans_matrix[i, :] = ((trans_matrix[i, :] - diag_value) / diag_value) * 100
     
     return trans_matrix
+
+def load_gsm_mass_flux():
+    file = '/glade/u/home/pangulo/multiscale_circulations_in_gsam/data/gsam.eofs.northwest_tropical_pacific.massflux.50pix.nc'
+    return xr.open_dataset(file)
